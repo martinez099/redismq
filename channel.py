@@ -116,6 +116,14 @@ class Client(Channel):
         if not self.subscriber:
             self.subscriber = self.pubsub.run_in_thread(sleep_time=0.001)
 
+    def unset_rsp_handler(self):
+        """
+        Unset a response handler.
+
+        :return:
+        """
+        return self.pubsub.unsubscribe(PATTERN.format('responses', self.name))
+
 
 class Server(Channel):
     """
