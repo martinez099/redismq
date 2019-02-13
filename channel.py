@@ -14,8 +14,6 @@ class Channel(object):
 
     def __init__(self, _name, _redis):
         """
-        Initialize a newly created Channel object.
-
         :param _name: The name of the channel.
         :param _redis: A Redis instance.
         """
@@ -53,8 +51,6 @@ class Client(Channel):
 
     def __init__(self, _name, _redis):
         """
-        Initialize a newly created Client object.
-
         :param _name: The name of the channel.
         :param _redis: A Redis instance.
         """
@@ -122,6 +118,7 @@ class Client(Channel):
 
         :return:
         """
+        self.subscriber = None
         return self.pubsub.unsubscribe(PATTERN.format('responses', self.name))
 
 
@@ -134,8 +131,6 @@ class Server(Channel):
 
     def __init__(self, _name, _redis):
         """
-        Initialize a newly created Server object.
-
         :param _name: The name of the channel.
         :param _redis: A Redis instance.
         """
@@ -150,8 +145,7 @@ class Server(Channel):
         """
         req_id = self.requests.bpop(_to)
         if req_id:
-            req = self.redis.get(PATTERN.format('request', req_id))
-            return req_id, req
+            return req_id, self.redis.get(PATTERN.format('request', req_id))
 
     def ack_req(self, _id):
         """
@@ -174,4 +168,4 @@ class Server(Channel):
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         if rsps.push(_value):
             self.redis.publish(PATTERN.format('responses', self.name), _id)
-        return True
+            return True
