@@ -1,9 +1,10 @@
 from channel import Client
 
-import redis
 import json
 import functools
 import time
+
+import redis
 
 
 r = redis.StrictRedis(decode_responses=True)

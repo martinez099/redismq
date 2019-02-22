@@ -10,8 +10,6 @@ class RQueue(object):
 
     def __init__(self, _name, _redis):
         """
-        Initialize a newly created RQueue object.
-
         :param _name: The name of the queue.
         :param _redis: An Redis instance.
         """
@@ -19,8 +17,8 @@ class RQueue(object):
         self.redis = _redis
 
     def __len__(self):
-        return self.redis.llen(PATTERN.format('access', self.name)) + \
-            self.redis.llen(PATTERN.format('process', self.name))
+        return int(self.redis.llen(PATTERN.format('access', self.name))) + \
+            int(self.redis.llen(PATTERN.format('process', self.name)))
 
     def push(self, _value):
         """

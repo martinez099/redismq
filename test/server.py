@@ -1,8 +1,10 @@
 from channel import Server
 
-import redis
 import json
+
 import gevent
+import redis
+
 from gevent import monkey
 monkey.patch_all()
 
