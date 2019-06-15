@@ -1,4 +1,4 @@
-from channel import Server
+from channel import Receiver
 
 import json
 
@@ -10,7 +10,7 @@ monkey.patch_all()
 
 
 r = redis.StrictRedis(decode_responses=True)
-channel = Server('channel1', r)
+channel = Receiver('channel1', r)
 
 
 def handle_req(_id, _value):

@@ -34,7 +34,7 @@ class Channel(object):
         """
         Close this communication channel.
 
-        :return:
+        :return: None
         """
         if self.subscriber:
             self.subscriber.stop()
@@ -42,11 +42,11 @@ class Channel(object):
         self.pubsub.close()
 
 
-class Client(Channel):
+class Sender(Channel):
     """
-    Channel Client class.
+    Sender Channel class.
 
-    An implementation of a communication channel client for Redis.
+    An implementation of a communication channel sender for Redis.
     """
 
     def __init__(self, _name, _redis):
@@ -54,7 +54,7 @@ class Client(Channel):
         :param _name: The name of the channel.
         :param _redis: A Redis instance.
         """
-        super(Client, self).__init__(_name, _redis)
+        super(Sender, self).__init__(_name, _redis)
 
     def send_req(self, _value, _id=None):
         """
@@ -73,9 +73,9 @@ class Client(Channel):
         """
         Receive a response. N.B: This is a blocking operation.
 
-        :param _id:
+        :param _id: The ID of the resonse, i.e. the ID of the request.
         :param _to: The blocking timeout in seconds. N.B: defaults to 0, i.e. infinite.
-        :return:
+        :return: The payload of the response, or None.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         return rsps.bpop(_to)
@@ -84,8 +84,8 @@ class Client(Channel):
         """
         Get a response. N.B: This is a non-blocking operation.
 
-        :param _id:
-        :return:
+        :param _id: The id of the response, i.e. the ID of the request.
+        :return: The payload of the response.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         return rsps.pop()
@@ -94,9 +94,9 @@ class Client(Channel):
         """
         Acknowledge a response when it's done processing.
 
-        :param _id:
-        :param _rsp:
-        :return:
+        :param _id: The ID of the response.
+        :param _rsp: The payload of the response.
+        :return: Success.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         return rsps.ack(_rsp)
@@ -105,8 +105,8 @@ class Client(Channel):
         """
         Set a response handler for asynchronous communication.
 
-        :param _handler:
-        :return:
+        :param _handler: The handler function.
+        :return: None
         """
         self.pubsub.subscribe(**{PATTERN.format('responses', self.name): _handler})
         if not self.subscriber:
@@ -116,17 +116,17 @@ class Client(Channel):
         """
         Unset a response handler.
 
-        :return:
+        :return: Success.
         """
         self.subscriber = None
         return self.pubsub.unsubscribe(PATTERN.format('responses', self.name))
 
 
-class Server(Channel):
+class Receiver(Channel):
     """
-    Channel Server class.
+    Receiver Channel class.
 
-    An implementation of a communication channel server for Redis.
+    An implementation of a communication channel receiver for Redis.
     """
 
     def __init__(self, _name, _redis):
@@ -134,16 +134,26 @@ class Server(Channel):
         :param _name: The name of the channel.
         :param _redis: A Redis instance.
         """
-        super(Server, self).__init__(_name, _redis)
+        super(Receiver, self).__init__(_name, _redis)
 
     def recv_req(self, _to=0):
         """
-        Receive a request. N.B: This is s blocking operation.
+        Receive a request. N.B: This is a blocking operation.
 
         :param _to: The blocking timeout in seconds. N.B: defaults to 0, i.e. infinite.
-        :return: A tuple wrapping the id of the request and the request itself.
+        :return: A tuple wrapping the id of the request and the request itself, or None
         """
         req_id = self.requests.bpop(_to)
+        if req_id:
+            return req_id, self.redis.get(PATTERN.format('request', req_id))
+
+    def get_req(self):
+        """
+        Get the next request. N.B: This is a non-blocking operation.
+
+        :return: A tuple wrapping the id of the request and the request itself, or None.
+        """
+        req_id = self.requests.pop()
         if req_id:
             return req_id, self.redis.get(PATTERN.format('request', req_id))
 
@@ -151,21 +161,23 @@ class Server(Channel):
         """
         Acknowlede a request when it's done processing.
 
-        :param _id:
-        :return:
+        :param _id: The ID of the request.
+        :return: Success
         """
         if self.requests.ack(_id):
-            return self.redis.delete(PATTERN.format('request', _id))
+            return bool(self.redis.delete(PATTERN.format('request', _id)))
+        return False
 
     def send_rsp(self, _id, _value):
         """
-        Send a response.
+        Send a response back to the receiver.
 
-        :param _id:
-        :param _value:
-        :return:
+        :param _id: The ID of the response, should be the same ID of the request.
+        :param _value: The response payload.
+        :return: Success.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         if rsps.push(_value):
             self.redis.publish(PATTERN.format('responses', self.name), _id)
             return True
+        return False

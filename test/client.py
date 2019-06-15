@@ -1,4 +1,4 @@
-from channel import Client
+from channel import Sender
 
 import json
 import functools
@@ -8,7 +8,7 @@ import redis
 
 
 r = redis.StrictRedis(decode_responses=True)
-channel = Client('channel1', r)
+channel = Sender('channel1', r)
 
 
 def handle_rsp(_ctx, _msg):

@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package messagequeue;
+
+service MessageQueue {
+  rpc send_req (SendRequest) returns (SendResponse) {}
+  rpc recv_rsp (ReceiveRequest) returns (ReceiveResponse) {}
+  rpc get_rsp (GetRequest) returns (GetResponse) {}
+  rpc ack_rsp (AcknowledgeRequest) returns (AcknowledgeResponse) {}
+  rpc recv_req (ReceiveRequest) returns (ReceiveResponse) {}
+  rpc get_req (GetRequest) returns (GetResponse) {}
+  rpc ack_req (AcknowledgeRequest) returns (AcknowledgeResponse) {}
+  rpc send_rsp (SendRequest) returns (SendResponse) {}
+}
+
+message SendRequest {
+  string req_id = 1;
+  string service_name = 2;
+  string func_name = 3;
+  string payload = 4;
+}
+
+message SendResponse {
+  string req_id = 1;
+}
+
+message ReceiveRequest {
+  string service_name = 1;
+  string func_name = 2;
+  string req_id = 3;
+}
+
+message ReceiveResponse {
+  string payload = 1;
+}
+
+message GetRequest {
+  string service_name = 1;
+  string func_name = 2;
+  string req_id = 3;
+}
+
+message GetResponse {
+  bool value = 1;
+}
+
+message AcknowledgeRequest {
+  string service_name = 1;
+  string func_name = 2;
+  string req_id = 3;
+  string value = 4;
+}
+
+message AcknowledgeResponse {
+  bool success = 1;
+}
