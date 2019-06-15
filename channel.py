@@ -90,16 +90,16 @@ class Sender(Channel):
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
         return rsps.pop()
 
-    def ack_rsp(self, _id, _rsp):
+    def ack_rsp(self, _id, _payload):
         """
         Acknowledge a response when it's done processing.
 
         :param _id: The ID of the response.
-        :param _rsp: The payload of the response.
+        :param _payload: The payload of the response.
         :return: Success.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
-        return rsps.ack(_rsp)
+        return rsps.ack(_payload)
 
     def set_rsp_handler(self, _handler):
         """

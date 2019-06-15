@@ -85,7 +85,7 @@ class MessageQueue(MessageQueueServicer):
         :return: Success.
         """
         channel = self._get_channel(request.service_name, request.func_name, Sender)
-        success = channel.ack_rsp(request.req_id)
+        success = channel.ack_rsp(request.req_id, request.payload)
 
         return AcknowledgeResponse(success=success)
 
