@@ -1,15 +1,12 @@
-import json
-import threading
 import uuid
 
 import grpc
 
-from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, AcknowledgeRequest, \
-    DeactivateEntityCacheRequest, SubscribeRequest
+from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, AcknowledgeRequest
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-EVENT_STORE_ADDRESS = 'message-queue:50051'
+MESSAGE_QUEUE_ADDRESS = 'localhost:50051'
 
 
 class MessageQueue(object):
@@ -18,7 +15,7 @@ class MessageQueue(object):
     """
 
     def __init__(self):
-        self.channel = grpc.insecure_channel(EVENT_STORE_ADDRESS)
+        self.channel = grpc.insecure_channel(MESSAGE_QUEUE_ADDRESS)
         self.stub = MessageQueueStub(self.channel)
         self.subscribers = {}
 

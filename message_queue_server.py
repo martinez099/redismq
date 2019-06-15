@@ -17,7 +17,7 @@ class MessageQueue(MessageQueueServicer):
     """
 
     def __init__(self):
-        self.redis = StrictRedis(decode_responses=True, host='redis')
+        self.redis = StrictRedis(decode_responses=True, host='localhost')
         self.subscribers = {}
         self.channels = {}
 
