@@ -6,7 +6,7 @@ from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, Acknowled
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-MESSAGE_QUEUE_ADDRESS = 'localhost:50051'
+MESSAGE_QUEUE_ADDRESS = 'message-queue:50051'
 
 
 class MessageQueue(object):
