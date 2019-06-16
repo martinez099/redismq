@@ -32,6 +32,7 @@ message ReceiveRequest {
 
 message ReceiveResponse {
   string payload = 1;
+  string req_id = 2;
 }
 
 message GetRequest {
@@ -42,6 +43,7 @@ message GetRequest {
 
 message GetResponse {
   bool payload = 1;
+  string req_id = 2;
 }
 
 message AcknowledgeRequest {

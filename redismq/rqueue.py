@@ -51,6 +51,6 @@ class RQueue(object):
         Acknowledge a value from the queue, i.e. successfully processed.
 
         :param _value: The value to be acknowledged.
-        :return: A truthy value on success, a falsy otherwise.
+        :return: Success.
         """
-        return self.redis.lrem(PATTERN.format('process', self.name), 1, _value)
+        return bool(self.redis.lrem(PATTERN.format('process', self.name), 1, _value))

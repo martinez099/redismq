@@ -98,38 +98,36 @@ class MessageQueue(object):
 
         return response.success
 
-    def recv_req(self, service_name, func_name, req_id):
+    def recv_req(self, service_name, func_name):
         """
         Receive a request.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request.
         :return: The payload of the request.
         """
-        response = self.stub.recv_req(
+        request = self.stub.recv_req(
             ReceiveRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                req_id=None,
             ))
 
-        return response.payload
+        return request.payload
 
-    def get_req(self, service_name, func_name, req_id):
+    def get_req(self, service_name, func_name):
         """
         Get a request.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request.
         :return: The payload of the response.
         """
         request = self.stub.get_req(
             GetRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                req_id=None,
             ))
 
         return request.payload
@@ -143,14 +141,15 @@ class MessageQueue(object):
         :param req_id: The ID of the request.
         :return: The payload of the response.
         """
-        request = self.stub.get_req(
-            GetRequest(
+        request = self.stub.ack_req(
+            AcknowledgeRequest(
                 service_name=service_name,
                 func_name=func_name,
                 req_id=req_id,
+                payload=None,
             ))
 
-        return request.payload
+        return request.success
 
     def send_rsp(self, service_name, func_name, req_id, payload):
         """

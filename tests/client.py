@@ -1,7 +1,6 @@
-from channel import Sender
+from redismq.channel import Sender
 
 import json
-import functools
 import time
 
 import redis

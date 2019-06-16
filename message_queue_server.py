@@ -8,7 +8,7 @@ from redis import StrictRedis
 from message_queue_pb2 import SendResponse, ReceiveResponse, GetResponse, AcknowledgeResponse
 from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueServicer_to_server
 
-from channel import Sender, Receiver
+from redismq.channel import Sender, Receiver
 
 
 class MessageQueue(MessageQueueServicer):
@@ -25,16 +25,18 @@ class MessageQueue(MessageQueueServicer):
         """
         Get or create communication channel.
 
-        :param service_name: The name of the service
-        :param func_name:
-        :param channel_class:
-        :return:
+        :param service_name: The name of the service.
+        :param func_name: The name of the function.
+        :param channel_class: The channel class.
+        :return: The communication channel.
         """
-        channel_name = self.channels.get('{}.{}'.format(service_name, func_name))
+        channel_name = '{}.{}'.format(service_name, func_name)
         channel = self.channels.get((channel_name, channel_class))
+
         if not channel:
             channel = channel_class(channel_name, self.redis)
             self.channels[(channel_name, channel_class)] = channel
+
         return channel
 
     def send_req(self, request, context):
@@ -61,7 +63,7 @@ class MessageQueue(MessageQueueServicer):
         channel = self._get_channel(request.service_name, request.func_name, Sender)
         response = channel.recv_rsp(request.req_id)
 
-        return ReceiveResponse(payload=response)
+        return ReceiveResponse(payload=response, req_id=request.req_id)
 
     def get_rsp(self, request, context):
         """
@@ -74,7 +76,7 @@ class MessageQueue(MessageQueueServicer):
         channel = self._get_channel(request.service_name, request.func_name, Sender)
         response = channel.get_rsp(request.req_id)
 
-        return GetResponse(payload=response)
+        return GetResponse(payload=response, req_id=request.req_id)
 
     def ack_rsp(self, request, context):
         """
@@ -98,9 +100,9 @@ class MessageQueue(MessageQueueServicer):
         :return: The payload of the request.
         """
         channel = self._get_channel(request.service_name, request.func_name, Receiver)
-        request = channel.recv_req()
+        (req_id, req) = channel.recv_req()
 
-        return ReceiveResponse(payload=request)
+        return ReceiveResponse(payload=req, req_id=req_id)
 
     def get_req(self, request, context):
         """
@@ -111,9 +113,9 @@ class MessageQueue(MessageQueueServicer):
         :return: The payload of the request.
         """
         channel = self._get_channel(request.service_name, request.func_name, Receiver)
-        request = channel.get_req()
+        (req_id, req) = channel.get_req()
 
-        return GetResponse(payload=request)
+        return GetResponse(payload=req, req_id=req_id)
 
     def ack_req(self, request, context):
         """
