@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import grpc
@@ -6,7 +7,8 @@ from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, Acknowled
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-MESSAGE_QUEUE_ADDRESS = 'message-queue:50051'
+MESSAGE_QUEUE_HOST = os.getenv('MESSAGE_QUEUE_HOST', 'localhost')
+MESSAGE_QUEUE_ADDRESS = MESSAGE_QUEUE_HOST + ':50051'
 
 
 class MessageQueue(object):

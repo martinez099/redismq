@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from concurrent import futures
 
@@ -11,13 +12,16 @@ from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueService
 from redismq.channel import Sender, Receiver
 
 
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+
+
 class MessageQueue(MessageQueueServicer):
     """
     Message Queue class.
     """
 
     def __init__(self):
-        self.redis = StrictRedis(decode_responses=True, host='localhost')
+        self.redis = StrictRedis(decode_responses=True, host=REDIS_HOST)
         self.subscribers = {}
         self.channels = {}
 
