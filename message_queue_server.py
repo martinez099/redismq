@@ -148,20 +148,20 @@ class MessageQueue(MessageQueueServicer):
         return SendResponse(req_id=request.req_id if sent else None)
 
 
-EVENT_STORE_ADDRESS = '[::]:50051'
-EVENT_STORE_THREADS = 10
-EVENT_STORE_SLEEP_INTERVAL = 60 * 60 * 24
-EVENT_STORE_GRACE_INTERVAL = 0
+MESSAGE_QUEUE_ADDRESS = '[::]:50051'
+MESSAGE_QUEUE_THREADS = 10
+MESSAGE_QUEUE_SLEEP_INTERVAL = 60 * 60 * 24
+MESSAGE_QUEUE_GRACE_INTERVAL = 0
 
 
 def serve():
     """
     Run the gRPC server.
     """
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=EVENT_STORE_THREADS))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=MESSAGE_QUEUE_THREADS))
     try:
         add_MessageQueueServicer_to_server(MessageQueue(), server)
-        server.add_insecure_port(EVENT_STORE_ADDRESS)
+        server.add_insecure_port(MESSAGE_QUEUE_ADDRESS)
         server.start()
     except Exception as e:
         logging.log(logging.ERROR, str(e))
@@ -169,9 +169,9 @@ def serve():
     logging.log(logging.INFO, 'serving ...')
     try:
         while True:
-            time.sleep(EVENT_STORE_SLEEP_INTERVAL)
-    except KeyboardInterrupt:
-        server.stop(EVENT_STORE_GRACE_INTERVAL)
+            time.sleep(MESSAGE_QUEUE_SLEEP_INTERVAL)
+    except (InterruptedError, KeyboardInterrupt):
+        server.stop(MESSAGE_QUEUE_GRACE_INTERVAL)
 
     logging.log(logging.INFO, 'done')
 
