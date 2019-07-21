@@ -115,7 +115,7 @@ class MessageQueue(object):
                 req_id=None,
             ))
 
-        return request.payload
+        return request.req_id, request.payload
 
     def get_req(self, service_name, func_name):
         """
@@ -132,7 +132,7 @@ class MessageQueue(object):
                 req_id=None,
             ))
 
-        return request.payload
+        return request.req_id, request.payload
 
     def ack_req(self, service_name, func_name, req_id):
         """
