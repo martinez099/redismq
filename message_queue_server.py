@@ -14,7 +14,7 @@ from redismq.channel import Sender, Receiver
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 LISTEN_PORT = os.getenv('LISTEN_PORT', '50051')
-MAX_WORKERS = os.getenv('MAX_WORKERS', 10)
+MAX_WORKERS = int(os.getenv('MAX_WORKERS', '10'))
 
 
 class MessageQueue(MessageQueueServicer):
