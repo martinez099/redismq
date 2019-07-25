@@ -1,31 +1,53 @@
+import threading
+
 from message_queue_client import MessageQueue
 
+MQ = MessageQueue()
 
-mq = MessageQueue()
-while True:
 
-    SERVICE_NAME = 'service-1'
-    FUNC_NAME = 'func-1'
+def sender(mq, service_name, func_name):
 
-    # send a request
-    req_id = mq.send_req(SERVICE_NAME, FUNC_NAME, 'poaylaod')
+    while True:
 
-    # receive the same request
-    req = mq.recv_req(SERVICE_NAME, FUNC_NAME, req_id)
+        # send a request
+        req_id = mq.send_req(service_name, func_name, 'poaylaod')
 
-    # do some processing
-    rsp = req + '_processed'
+        # receive the response
+        rsp = mq.recv_rsp(service_name, func_name, req_id)
 
-    # acknowledge the request
-    mq.ack_req(SERVICE_NAME, FUNC_NAME, req_id)
+        # acknowledge the response
+        mq.ack_rsp(service_name, func_name, req_id, rsp)
 
-    # send a response
-    mq.send_rsp(SERVICE_NAME, FUNC_NAME, req_id, rsp)
+        print(rsp)
 
-    # receive a response
-    rsp = mq.recv_rsp(SERVICE_NAME, FUNC_NAME, req_id)
 
-    # acknowledge the response
-    mq.ack_rsp(SERVICE_NAME, FUNC_NAME, req_id, rsp)
+def receiver(mq, service_name, func_name):
 
-    print(rsp)
+    while True:
+
+        # receive a request
+        req_id, req_payload = mq.recv_req(service_name, func_name)
+
+        # do some processing
+        rsp = req_payload + '_processed by {}.{}'.format(service_name, func_name)
+
+        # send a response
+        mq.send_rsp(service_name, func_name, req_id, rsp)
+
+        # acknowledge the request
+        mq.ack_req(service_name, func_name, req_id)
+
+
+RECEIVERS = SENDERS = 9
+
+threads = [threading.Thread(
+                        target=sender,
+                        name='Sender(service-1.func_{})'.format(i),
+                        args=(MQ, 'service-1', 'func_{}'.format(i))) for i in range(SENDERS)] + \
+          [threading.Thread(
+                        target=receiver,
+                        name='Receiver(service-1.func_{})'.format(i),
+                        args=(MQ, 'service-1', 'func_{}'.format(i))) for i in range(RECEIVERS)]
+
+[t.start() for t in threads]
+[t.join() for t in threads]
