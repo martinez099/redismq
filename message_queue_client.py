@@ -8,7 +8,8 @@ from message_queue_pb2_grpc import MessageQueueStub
 
 
 MESSAGE_QUEUE_HOST = os.getenv('MESSAGE_QUEUE_HOST', 'localhost')
-MESSAGE_QUEUE_ADDRESS = MESSAGE_QUEUE_HOST + ':50051'
+MESSAGE_QUEUE_PORT = os.getenv('MESSAGE_QUEUE_PORT', '50051')
+MESSAGE_QUEUE_ADDRESS = '{}:{}'.format(MESSAGE_QUEUE_HOST, MESSAGE_QUEUE_PORT)
 
 
 class MessageQueue(object):

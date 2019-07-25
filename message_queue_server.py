@@ -12,18 +12,13 @@ from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueService
 from redismq.channel import Sender, Receiver
 
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-LISTEN_PORT = os.getenv('LISTEN_PORT', '50051')
-MAX_WORKERS = int(os.getenv('MAX_WORKERS', '10'))
-
-
 class MessageQueue(MessageQueueServicer):
     """
     Message Queue class.
     """
 
     def __init__(self):
-        self.redis = StrictRedis(decode_responses=True, host=REDIS_HOST)
+        self.redis = StrictRedis(decode_responses=True, host=MESSAGE_QUEUE_REDIS_HOST)
         self.redis.flushall()
         self.subscribers = {}
         self.channels = {}
@@ -151,7 +146,11 @@ class MessageQueue(MessageQueueServicer):
         return SendResponse(req_id=request.req_id if sent else None)
 
 
-MESSAGE_QUEUE_ADDRESS = '[::]:{}'.format(LISTEN_PORT)
+MESSAGE_QUEUE_REDIS_HOST = os.getenv('MESSAGE_QUEUE_REDIS_HOST', 'localhost')
+MESSAGE_QUEUE_LISTEN_PORT = os.getenv('MESSAGE_QUEUE_LISTEN_PORT', '50051')
+MESSAGE_QUEUE_MAX_WORKERS = int(os.getenv('MESSAGE_QUEUE_MAX_WORKERS', '10'))
+
+MESSAGE_QUEUE_ADDRESS = '[::]:{}'.format(MESSAGE_QUEUE_LISTEN_PORT)
 MESSAGE_QUEUE_SLEEP_INTERVAL = 60 * 60 * 24
 MESSAGE_QUEUE_GRACE_INTERVAL = 0
 
@@ -160,7 +159,7 @@ def serve():
     """
     Run the gRPC server.
     """
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=MESSAGE_QUEUE_MAX_WORKERS))
     try:
         add_MessageQueueServicer_to_server(MessageQueue(), server)
         server.add_insecure_port(MESSAGE_QUEUE_ADDRESS)
