@@ -9,7 +9,7 @@ from redis import StrictRedis
 from message_queue_pb2 import SendResponse, ReceiveResponse, GetResponse, AcknowledgeResponse
 from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueServicer_to_server
 
-from redismq.channel import Sender, Receiver
+from redismq import Sender, Receiver
 
 
 class MessageQueue(MessageQueueServicer):

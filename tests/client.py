@@ -1,4 +1,4 @@
-from redismq.channel import Sender
+from redismq import Sender
 
 import json
 import time

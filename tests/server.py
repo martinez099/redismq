@@ -1,4 +1,4 @@
-from redismq.channel import Receiver
+from redismq import Receiver
 
 import json
 

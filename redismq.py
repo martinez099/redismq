@@ -1,4 +1,4 @@
-from redismq.rqueue import RQueue
+from rqueue.rqueue import RQueue
 
 import uuid
 
