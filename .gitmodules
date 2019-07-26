@@ -1,0 +1,3 @@
+[submodule "rqueue"]
+	path = rqueue
+	url = https://github.com/martinez099/rqueue
