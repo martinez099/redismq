@@ -63,7 +63,7 @@ class MessageQueue(MessageQueueServicer):
         :return: The response payload.
         """
         channel = self._get_channel(request.service_name, request.func_name, Sender)
-        response = channel.recv_rsp(request.req_id)
+        response = channel.recv_rsp(request.req_id, request.timeout)
 
         return ReceiveResponse(payload=response, req_id=request.req_id)
 
@@ -102,7 +102,7 @@ class MessageQueue(MessageQueueServicer):
         :return: The payload of the request.
         """
         channel = self._get_channel(request.service_name, request.func_name, Receiver)
-        (req_id, req) = channel.recv_req()
+        (req_id, req) = channel.recv_req(request.timeout)
 
         return ReceiveResponse(payload=req, req_id=req_id)
 

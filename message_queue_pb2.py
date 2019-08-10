@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='messagequeue',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x13message_queue.proto\x12\x0cmessagequeue\"W\n\x0bSendRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\x12\x0f\n\x07payload\x18\x04 \x01(\t\"\x1e\n\x0cSendResponse\x12\x0e\n\x06req_id\x18\x01 \x01(\t\"I\n\x0eReceiveRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\"2\n\x0fReceiveResponse\x12\x0f\n\x07payload\x18\x01 \x01(\t\x12\x0e\n\x06req_id\x18\x02 \x01(\t\"E\n\nGetRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\".\n\x0bGetResponse\x12\x0f\n\x07payload\x18\x01 \x01(\x08\x12\x0e\n\x06req_id\x18\x02 \x01(\t\"^\n\x12\x41\x63knowledgeRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\x12\x0f\n\x07payload\x18\x04 \x01(\t\"&\n\x13\x41\x63knowledgeResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32\xd6\x04\n\x0cMessageQueue\x12\x43\n\x08send_req\x12\x19.messagequeue.SendRequest\x1a\x1a.messagequeue.SendResponse\"\x00\x12I\n\x08recv_rsp\x12\x1c.messagequeue.ReceiveRequest\x1a\x1d.messagequeue.ReceiveResponse\"\x00\x12@\n\x07get_rsp\x12\x18.messagequeue.GetRequest\x1a\x19.messagequeue.GetResponse\"\x00\x12P\n\x07\x61\x63k_rsp\x12 .messagequeue.AcknowledgeRequest\x1a!.messagequeue.AcknowledgeResponse\"\x00\x12I\n\x08recv_req\x12\x1c.messagequeue.ReceiveRequest\x1a\x1d.messagequeue.ReceiveResponse\"\x00\x12@\n\x07get_req\x12\x18.messagequeue.GetRequest\x1a\x19.messagequeue.GetResponse\"\x00\x12P\n\x07\x61\x63k_req\x12 .messagequeue.AcknowledgeRequest\x1a!.messagequeue.AcknowledgeResponse\"\x00\x12\x43\n\x08send_rsp\x12\x19.messagequeue.SendRequest\x1a\x1a.messagequeue.SendResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x13message_queue.proto\x12\x0cmessagequeue\"W\n\x0bSendRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\x12\x0f\n\x07payload\x18\x04 \x01(\t\"\x1e\n\x0cSendResponse\x12\x0e\n\x06req_id\x18\x01 \x01(\t\"Z\n\x0eReceiveRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\x12\x0f\n\x07timeout\x18\x04 \x01(\x05\"2\n\x0fReceiveResponse\x12\x0f\n\x07payload\x18\x01 \x01(\t\x12\x0e\n\x06req_id\x18\x02 \x01(\t\"E\n\nGetRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\".\n\x0bGetResponse\x12\x0f\n\x07payload\x18\x01 \x01(\x08\x12\x0e\n\x06req_id\x18\x02 \x01(\t\"^\n\x12\x41\x63knowledgeRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\tfunc_name\x18\x02 \x01(\t\x12\x0e\n\x06req_id\x18\x03 \x01(\t\x12\x0f\n\x07payload\x18\x04 \x01(\t\"&\n\x13\x41\x63knowledgeResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32\xd6\x04\n\x0cMessageQueue\x12\x43\n\x08send_req\x12\x19.messagequeue.SendRequest\x1a\x1a.messagequeue.SendResponse\"\x00\x12I\n\x08recv_rsp\x12\x1c.messagequeue.ReceiveRequest\x1a\x1d.messagequeue.ReceiveResponse\"\x00\x12@\n\x07get_rsp\x12\x18.messagequeue.GetRequest\x1a\x19.messagequeue.GetResponse\"\x00\x12P\n\x07\x61\x63k_rsp\x12 .messagequeue.AcknowledgeRequest\x1a!.messagequeue.AcknowledgeResponse\"\x00\x12I\n\x08recv_req\x12\x1c.messagequeue.ReceiveRequest\x1a\x1d.messagequeue.ReceiveResponse\"\x00\x12@\n\x07get_req\x12\x18.messagequeue.GetRequest\x1a\x19.messagequeue.GetResponse\"\x00\x12P\n\x07\x61\x63k_req\x12 .messagequeue.AcknowledgeRequest\x1a!.messagequeue.AcknowledgeResponse\"\x00\x12\x43\n\x08send_rsp\x12\x19.messagequeue.SendRequest\x1a\x1a.messagequeue.SendResponse\"\x00\x62\x06proto3')
 )
 
 
@@ -136,6 +136,13 @@ _RECEIVEREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='timeout', full_name='messagequeue.ReceiveRequest.timeout', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -149,7 +156,7 @@ _RECEIVEREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=158,
-  serialized_end=231,
+  serialized_end=248,
 )
 
 
@@ -186,8 +193,8 @@ _RECEIVERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=233,
-  serialized_end=283,
+  serialized_start=250,
+  serialized_end=300,
 )
 
 
@@ -231,8 +238,8 @@ _GETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=285,
-  serialized_end=354,
+  serialized_start=302,
+  serialized_end=371,
 )
 
 
@@ -269,8 +276,8 @@ _GETRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=356,
-  serialized_end=402,
+  serialized_start=373,
+  serialized_end=419,
 )
 
 
@@ -321,8 +328,8 @@ _ACKNOWLEDGEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=404,
-  serialized_end=498,
+  serialized_start=421,
+  serialized_end=515,
 )
 
 
@@ -352,8 +359,8 @@ _ACKNOWLEDGERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=500,
-  serialized_end=538,
+  serialized_start=517,
+  serialized_end=555,
 )
 
 DESCRIPTOR.message_types_by_name['SendRequest'] = _SENDREQUEST
@@ -430,8 +437,8 @@ _MESSAGEQUEUE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=541,
-  serialized_end=1139,
+  serialized_start=558,
+  serialized_end=1156,
   methods=[
   _descriptor.MethodDescriptor(
     name='send_req',

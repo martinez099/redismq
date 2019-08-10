@@ -45,13 +45,14 @@ class MessageQueue(object):
 
         return response.req_id
 
-    def recv_rsp(self, service_name, func_name, req_id):
+    def recv_rsp(self, service_name, func_name, req_id, timeout=0):
         """
         Receive a response.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
         :param req_id: The ID of the request, may be None.
+        :param timeout: The timeout in seconds.
         :return: The payload of the response.
         """
         response = self.stub.recv_rsp(
@@ -59,6 +60,7 @@ class MessageQueue(object):
                 service_name=service_name,
                 func_name=func_name,
                 req_id=req_id,
+                timeout=timeout
             ))
 
         return response.payload
@@ -101,12 +103,13 @@ class MessageQueue(object):
 
         return response.success
 
-    def recv_req(self, service_name, func_name):
+    def recv_req(self, service_name, func_name, timeout=0):
         """
         Receive a request.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
+        :param timeout: The timeout in seconds.
         :return: The payload of the request.
         """
         request = self.stub.recv_req(
@@ -114,6 +117,7 @@ class MessageQueue(object):
                 service_name=service_name,
                 func_name=func_name,
                 req_id=None,
+                timeout=timeout
             ))
 
         return request.req_id, request.payload

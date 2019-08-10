@@ -13,7 +13,7 @@ def sender(mq, service_name, func_name):
         req_id = mq.send_req(service_name, func_name, 'poaylaod')
 
         # receive the response
-        rsp = mq.recv_rsp(service_name, func_name, req_id)
+        rsp = mq.recv_rsp(service_name, func_name, req_id, 1)
 
         # acknowledge the response
         mq.ack_rsp(service_name, func_name, req_id, rsp)
@@ -26,7 +26,7 @@ def receiver(mq, service_name, func_name):
     while True:
 
         # receive a request
-        req_id, req_payload = mq.recv_req(service_name, func_name)
+        req_id, req_payload = mq.recv_req(service_name, func_name, 1)
 
         # do some processing
         rsp = req_payload + '_processed by {}.{}'.format(service_name, func_name)
