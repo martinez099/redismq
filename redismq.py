@@ -146,6 +146,7 @@ class Receiver(Channel):
         req_id = self.requests.bpop(_to)
         if req_id:
             return req_id, self.redis.get(PATTERN.format('request', req_id))
+        return None, None
 
     def get_req(self):
         """
