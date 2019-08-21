@@ -165,16 +165,16 @@ def serve():
         server.add_insecure_port(MESSAGE_QUEUE_ADDRESS)
         server.start()
     except Exception as e:
-        logging.log(logging.ERROR, str(e))
+        logging.error(e)
 
-    logging.log(logging.INFO, 'serving ...')
+    logging.info('serving ...')
     try:
         while True:
             time.sleep(MESSAGE_QUEUE_SLEEP_INTERVAL)
     except (InterruptedError, KeyboardInterrupt):
         server.stop(MESSAGE_QUEUE_GRACE_INTERVAL)
 
-    logging.log(logging.INFO, 'done')
+    logging.info('done.')
 
 
 if __name__ == '__main__':
