@@ -1,53 +1,20 @@
 import threading
 
-from message_queue_client import MessageQueue
-
-MQ = MessageQueue()
+from message_queue_client import Receivers, send_message
 
 
-def sender(mq, service_name, func_name):
+def sender(service_name, func_name):
 
     while True:
 
-        # send a request
-        req_id = mq.send_req(service_name, func_name, 'poaylaod')
-
-        # receive the response
-        rsp = mq.recv_rsp(service_name, func_name, req_id, 1)
-
-        # acknowledge the response
-        mq.ack_rsp(service_name, func_name, req_id, rsp)
-
-        print(rsp)
+        print(send_message(service_name, func_name, 'poaylaod'))
 
 
-def receiver(mq, service_name, func_name):
+def test_func(req):
 
-    while True:
-
-        # receive a request
-        req_id, req_payload = mq.recv_req(service_name, func_name, 1)
-
-        # do some processing
-        rsp = req_payload + '_processed by {}.{}'.format(service_name, func_name)
-
-        # send a response
-        mq.send_rsp(service_name, func_name, req_id, rsp)
-
-        # acknowledge the request
-        mq.ack_req(service_name, func_name, req_id)
+    return req + "_processed"
 
 
-RECEIVERS = SENDERS = 9
+threading.Thread(target=sender, args=('test-service', 'test_func')).start()
 
-threads = [threading.Thread(
-                        target=sender,
-                        name='Sender(service-1.func_{})'.format(i),
-                        args=(MQ, 'service-1', 'func_{}'.format(i))) for i in range(SENDERS)] + \
-          [threading.Thread(
-                        target=receiver,
-                        name='Receiver(service-1.func_{})'.format(i),
-                        args=(MQ, 'service-1', 'func_{}'.format(i))) for i in range(RECEIVERS)]
-
-[t.start() for t in threads]
-[t.join() for t in threads]
+rs = Receivers('test-service', [test_func]).start().wait()
