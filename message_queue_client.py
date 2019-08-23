@@ -96,8 +96,8 @@ class MessageQueue(object):
     """
 
     def __init__(self):
-        self.channel = grpc.insecure_channel('{}:{}'.format(os.getenv('MESSAGE_QUEUE_HOST', 'localhost'),
-                                                            os.getenv('MESSAGE_QUEUE_PORT', '50051')))
+        host, port = os.getenv('MESSAGE_QUEUE_HOSTNAME', 'localhost'), os.getenv('MESSAGE_QUEUE_PORTNR', '50051')
+        self.channel = grpc.insecure_channel('{}:{}'.format(host, port))
         self.stub = MessageQueueStub(self.channel)
         self.subscribers = {}
 
