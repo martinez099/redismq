@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import threading
 import uuid
@@ -14,23 +13,20 @@ def send_message(service_name, func_name, params={}):
     """
     Put a message into a message queue.
 
-    :param mq: The message queue.
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
     :param params: The parameters.
     :return: The payload of the response.
     """
-    try:
-        req_id = MQ.send_req(service_name, func_name, json.dumps(params))
-        rsp = MQ.recv_rsp(service_name, func_name, req_id, 1)
-        if rsp:
-            MQ.ack_rsp(service_name, func_name, req_id, rsp)
-            return rsp
-        else:
-            raise TimeoutError('{}.{}'.format(service_name, func_name))
-    except Exception as e:
-        logging.error("Error sending message: " + str(e))
-        raise e
+    req_id = MQ.send_req(service_name, func_name, json.dumps({
+        "params": params
+    }))
+    rsp = MQ.recv_rsp(service_name, func_name, req_id, 1)
+    if rsp:
+        MQ.ack_rsp(service_name, func_name, req_id, rsp)
+        return json.loads(rsp)
+    else:
+        raise TimeoutError('{}.{}'.format(service_name, func_name))
 
 
 class Receivers(object):
@@ -85,13 +81,15 @@ class Receivers(object):
             req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, 1)
             if req_payload:
                 try:
-                    rsp = handler_func(req_payload)
+                    params = json.loads(req_payload)['params']
+                    rsp = handler_func(params)
                 except Exception as e:
-                    logging.error("Error handling receiver function: " + str(e))
-                    rsp = str(e)
+                    rsp = {
+                        "error": "Error handling receiver function ({}): {}".format(e.__class__.__name__, str(e))
+                    }
 
                 MQ.ack_req(self.service_name, handler_func.__name__, req_id)
-                MQ.send_rsp(self.service_name, handler_func.__name__, req_id, rsp)
+                MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
 
 
 class MessageQueue(object):

@@ -7,12 +7,18 @@ def sender(service_name, func_name):
 
     while True:
 
-        print(send_message(service_name, func_name, 'poaylaod'))
+        rsp = send_message(service_name, func_name, "poaylaod")
+
+        print(rsp)
 
 
-def test_func(req):
+def test_func(req_params):
 
-    return req + "_processed"
+    rsp = {
+        "result": req_params + "_processed"
+    }
+
+    return rsp
 
 
 threading.Thread(target=sender, args=('test-service', 'test_func')).start()
