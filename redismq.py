@@ -65,9 +65,11 @@ class Sender(Channel):
         :return: The ID of the sent request, or None.
         """
         req_id = str(uuid.uuid4()) if not _id else _id
-        if self.redis.set(PATTERN.format('request', req_id), _value):
-            if self.requests.push(req_id):
-                return req_id
+        with self.redis.pipeline() as pipe:
+            pipe.set(PATTERN.format('request', req_id), _value)
+            self.requests.push(req_id, pipe)
+            ok1, ok2 = pipe.execute()
+            return req_id if ok1 and ok2 else None
 
     def recv_rsp(self, _id, _to=0):
         """
