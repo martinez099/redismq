@@ -60,9 +60,9 @@ class Sender(Channel):
         """
         Send a request.
 
-        :param _value:
-        :param _id:
-        :return: The ID of the sent request.
+        :param _value: The payload of the request.
+        :param _id: The ÍD of the request, optional.
+        :return: The ID of the sent request, or None.
         """
         req_id = str(uuid.uuid4()) if not _id else _id
         if self.redis.set(PATTERN.format('request', req_id), _value):

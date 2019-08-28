@@ -20,13 +20,17 @@ def send_message(service_name, func_name, params={}):
     :param params: The parameters.
     :return: The payload of the response.
     """
-    req_id = MQ.send_req(service_name, func_name, json.dumps(params))
-    rsp = MQ.recv_rsp(service_name, func_name, req_id, 1)
-    if rsp:
-        MQ.ack_rsp(service_name, func_name, req_id, rsp)
-        return rsp
-    else:
-        raise TimeoutError()
+    try:
+        req_id = MQ.send_req(service_name, func_name, json.dumps(params))
+        rsp = MQ.recv_rsp(service_name, func_name, req_id, 1)
+        if rsp:
+            MQ.ack_rsp(service_name, func_name, req_id, rsp)
+            return rsp
+        else:
+            raise TimeoutError('{}.{}'.format(service_name, func_name))
+    except Exception as e:
+        logging.error("Error sending message: " + str(e))
+        raise e
 
 
 class Receivers(object):
@@ -83,8 +87,8 @@ class Receivers(object):
                 try:
                     rsp = handler_func(req_payload)
                 except Exception as e:
-                    logging.getLogger().error(str(e))
-                    continue
+                    logging.error("Error handling receiver function: " + str(e))
+                    rsp = str(e)
 
                 MQ.ack_req(self.service_name, handler_func.__name__, req_id)
                 MQ.send_rsp(self.service_name, handler_func.__name__, req_id, rsp)
