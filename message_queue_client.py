@@ -9,19 +9,20 @@ from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, Acknowled
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-def send_message(service_name, func_name, params={}):
+def send_message(service_name, func_name, params={}, to=10):
     """
     Put a message into a message queue.
 
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
     :param params: The parameters.
+    :param to: The timeout to wait for the response.
     :return: The payload of the response.
     """
     req_id = MQ.send_req(service_name, func_name, json.dumps({
         "params": params
     }))
-    rsp = MQ.recv_rsp(service_name, func_name, req_id, 1)
+    rsp = MQ.recv_rsp(service_name, func_name, req_id, to)
     if rsp:
         MQ.ack_rsp(service_name, func_name, req_id, rsp)
         return json.loads(rsp)
