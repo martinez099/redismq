@@ -4,7 +4,6 @@ import time
 from concurrent import futures
 
 import grpc
-from redis import StrictRedis
 
 from message_queue_pb2 import SendResponse, ReceiveResponse, GetResponse, AcknowledgeResponse
 from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueServicer_to_server
@@ -18,8 +17,6 @@ class MessageQueue(MessageQueueServicer):
     """
 
     def __init__(self):
-        self.redis = StrictRedis(decode_responses=True, host=MESSAGE_QUEUE_REDIS_HOST)
-        self.redis.flushall()
         self.subscribers = {}
         self.channels = {}
 
@@ -36,7 +33,7 @@ class MessageQueue(MessageQueueServicer):
         channel = self.channels.get((channel_name, channel_class))
 
         if not channel:
-            channel = channel_class(channel_name, self.redis)
+            channel = channel_class(channel_name, MESSAGE_QUEUE_REDIS_HOST)
             self.channels[(channel_name, channel_class)] = channel
 
         return channel

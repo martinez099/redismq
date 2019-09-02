@@ -1,6 +1,8 @@
-from rqueue.rqueue import RQueue
-
 import uuid
+
+from redis import StrictRedis
+
+from rqueue.rqueue import RQueue
 
 PATTERN = 'channel_{}:{}'
 
@@ -12,15 +14,16 @@ class Channel(object):
     A base class for a communication channel.
     """
 
-    def __init__(self, _name, _redis):
+    def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
         """
         :param _name: The name of the channel.
-        :param _redis: A Redis instance.
+        :param _redis_host: The Redis host.
+        :param _redis_port: The Redis port.
         """
         self.name = _name
-        self.redis = _redis
+        self.redis = StrictRedis(decode_responses=True, host=_redis_host, port=_redis_port)
         self.redis.client_setname(_name)
-        self.requests = RQueue(PATTERN.format('requests', self.name), _redis)
+        self.requests = RQueue(PATTERN.format('requests', self.name), self.redis)
         self.pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
         self.subscriber = None
 
