@@ -83,11 +83,17 @@ class Receivers(object):
             if req_payload:
                 try:
                     params = json.loads(req_payload)['params']
-                    rsp = handler_func(params)
                 except Exception as e:
                     rsp = {
-                        "error": "Error handling receiver function ({}): {}".format(e.__class__.__name__, str(e))
+                        "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
                     }
+                else:
+                    try:
+                        rsp = handler_func(params)
+                    except Exception as e:
+                        rsp = {
+                            "error": "Error calling receiver function ({}): {}".format(e.__class__.__name__, str(e))
+                        }
 
                 MQ.ack_req(self.service_name, handler_func.__name__, req_id)
                 MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
