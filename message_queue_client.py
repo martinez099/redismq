@@ -10,14 +10,14 @@ from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, Acknowled
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-def send_message(service_name, func_name, params={}, to=10):
+def send_message(service_name, func_name, params={}, rsp_to=1):
     """
     Put a message into a message queue.
 
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
     :param params: The parameters.
-    :param to: The timeout to wait for the response.
+    :param rsp_to: An optional timeout (in seconds) to wait for the response, defaults to 1.
     :return: The payload of the response.
     """
     logging.debug(f'sending message to {service_name}.{func_name} ...')
@@ -25,7 +25,7 @@ def send_message(service_name, func_name, params={}, to=10):
         "params": params
     }))
     logging.debug(f'receiving response from {service_name}.{func_name} ...')
-    rsp = MQ.recv_rsp(service_name, func_name, req_id, to)
+    rsp = MQ.recv_rsp(service_name, func_name, req_id, rsp_to)
     if rsp:
         MQ.ack_rsp(service_name, func_name, req_id, rsp)
         return json.loads(rsp)
@@ -38,16 +38,18 @@ class Receivers(object):
     Receivers class.
     """
 
-    def __init__(self, service_name, handler_funcs):
+    def __init__(self, service_name, handler_funcs, timeout=10):
         """
-        :param service_name: a service name
-        :param handler_funcs: a list of handler functions
+        :param service_name: A service name.
+        :param handler_funcs: A list of handler functions.
+        :param timeout: An optional timeout in seconds, defaults to 10.
         """
         self.service_name = service_name
         self.handler_funcs = handler_funcs
+        self.timeout = timeout
         self.threads = [threading.Thread(target=self._run,
                                          name='{}.{}'.format(service_name, m.__name__),
-                                         args=(m,)) for m in handler_funcs]
+                                         args=(m, )) for m in handler_funcs]
         self.running = False
 
     def start(self):
@@ -83,7 +85,7 @@ class Receivers(object):
         while self.running:
 
             logging.debug(f'receiving request in {self.service_name}.{handler_func.__name__} ...')
-            req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, 1)
+            req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, self.timeout)
             if req_payload:
                 try:
                     params = json.loads(req_payload)['params']
