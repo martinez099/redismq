@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import threading
 import uuid
@@ -19,9 +20,11 @@ def send_message(service_name, func_name, params={}, to=10):
     :param to: The timeout to wait for the response.
     :return: The payload of the response.
     """
+    logging.debug(f'sending message to {service_name}.{func_name} ...')
     req_id = MQ.send_req(service_name, func_name, json.dumps({
         "params": params
     }))
+    logging.debug(f'receiving response from {service_name}.{func_name} ...')
     rsp = MQ.recv_rsp(service_name, func_name, req_id, to)
     if rsp:
         MQ.ack_rsp(service_name, func_name, req_id, rsp)
@@ -79,6 +82,7 @@ class Receivers(object):
 
         while self.running:
 
+            logging.debug(f'receiving request in {self.service_name}.{handler_func.__name__} ...')
             req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, 1)
             if req_payload:
                 try:
@@ -88,6 +92,7 @@ class Receivers(object):
                         "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
                     }
                 else:
+                    logging.debug(f'calling handler function in {self.service_name}.{handler_func.__name__} ...')
                     try:
                         rsp = handler_func(params)
                     except Exception as e:
@@ -96,6 +101,8 @@ class Receivers(object):
                         }
 
                 MQ.ack_req(self.service_name, handler_func.__name__, req_id)
+
+                logging.debug(f'sending response from {self.service_name}.{handler_func.__name__} ...')
                 MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
 
 
