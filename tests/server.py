@@ -9,8 +9,7 @@ from gevent import monkey
 monkey.patch_all()
 
 
-r = redis.StrictRedis(decode_responses=True)
-channel = Receiver('channel1', r)
+channel = Receiver('channel1')
 
 
 def handle_req(_id, _value):

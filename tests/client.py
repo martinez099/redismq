@@ -1,13 +1,13 @@
 from redismq import Sender
 
 import json
+import functools
 import time
 
 import redis
 
 
-r = redis.StrictRedis(decode_responses=True)
-channel = Sender('channel1', r)
+channel = Sender('channel1')
 
 
 def handle_rsp(_ctx, _msg):
@@ -38,10 +38,11 @@ def recv_rsp(_id, _cnt):
 
 start = time.time()
 
-#hndl = channel.set_rsp_handler(functools.partial(handle_rsp, {}))
+hndl = channel.set_rsp_handler(functools.partial(handle_rsp, {}))
+channel.set_rsp_handler(hndl)
 for i in range(0, 100):
     req_id = channel.send_req(json.dumps({"cnt": i, "data": 'a_request'}))
-    recv_rsp(req_id, i)
+    #recv_rsp(req_id, i)
 
 end = time.time()
 duration = end - start

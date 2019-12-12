@@ -14,7 +14,7 @@ class Channel(object):
     A base class for a communication channel.
     """
 
-    def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
+    def __init__(self, _name, _redis_host, _redis_port):
         """
         :param _name: The name of the channel.
         :param _redis_host: The Redis host.
@@ -36,7 +36,6 @@ class Channel(object):
     def close(self):
         """
         Close this communication channel.
-
         :return: None
         """
         if self.subscriber:
@@ -52,12 +51,13 @@ class Sender(Channel):
     An implementation of a communication channel sender for Redis.
     """
 
-    def __init__(self, _name, _redis):
+    def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
         """
         :param _name: The name of the channel.
-        :param _redis: A Redis instance.
+        :param _redis_host: The Redis host.
+        :param _redis_port: The Redis port.
         """
-        super(Sender, self).__init__(_name, _redis)
+        super(Sender, self).__init__(_name, _redis_host, _redis_port)
 
     def send_req(self, _value, _id=None):
         """
@@ -134,12 +134,13 @@ class Receiver(Channel):
     An implementation of a communication channel receiver for Redis.
     """
 
-    def __init__(self, _name, _redis):
+    def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
         """
         :param _name: The name of the channel.
-        :param _redis: A Redis instance.
+        :param _redis_host: The Redis host.
+        :param _redis_port: The Redis port.
         """
-        super(Receiver, self).__init__(_name, _redis)
+        super(Receiver, self).__init__(_name, _redis_host, _redis_port)
 
     def recv_req(self, _to=0):
         """
