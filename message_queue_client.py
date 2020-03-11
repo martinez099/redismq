@@ -26,11 +26,12 @@ def send_message(service_name, func_name, params={}, rsp_to=1):
     }))
     logging.debug(f'receiving response from {service_name}.{func_name} ...')
     rsp = MQ.recv_rsp(service_name, func_name, req_id, rsp_to)
-    if rsp:
-        MQ.ack_rsp(service_name, func_name, req_id, rsp)
-        return json.loads(rsp)
-    else:
+    if not rsp:
         raise TimeoutError('{}.{}'.format(service_name, func_name))
+
+    MQ.ack_rsp(service_name, func_name, req_id, rsp)
+
+    return json.loads(rsp)
 
 
 class Receivers(object):
@@ -38,11 +39,11 @@ class Receivers(object):
     Receivers class.
     """
 
-    def __init__(self, service_name, handler_funcs, timeout=10):
+    def __init__(self, service_name, handler_funcs, timeout=1):
         """
         :param service_name: A service name.
         :param handler_funcs: A list of handler functions.
-        :param timeout: An optional timeout in seconds, defaults to 10.
+        :param timeout: An optional timeout in seconds, defaults to 1.
         """
         self.service_name = service_name
         self.handler_funcs = handler_funcs
@@ -60,15 +61,7 @@ class Receivers(object):
         """
         self.running = True
         [t.start() for t in self.threads]
-        return self
 
-    def stop(self):
-        """
-        Stop all receiver threads.
-
-        :return: None
-        """
-        self.running = False
         return self
 
     def wait(self):
@@ -78,6 +71,17 @@ class Receivers(object):
         :return: None
         """
         [t.join() for t in self.threads]
+
+        return self
+
+    def stop(self):
+        """
+        Stop all receiver threads.
+
+        :return: None
+        """
+        self.running = False
+
         return self
 
     def _run(self, handler_func):
@@ -85,27 +89,31 @@ class Receivers(object):
         while self.running:
 
             logging.debug(f'receiving request in {self.service_name}.{handler_func.__name__} ...')
+
             req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, self.timeout)
-            if req_payload:
+            if not req_payload:
+                continue
+
+            try:
+                params = json.loads(req_payload)['params']
+            except Exception as e:
+                rsp = {
+                    "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
+                }
+            else:
+                logging.debug(f'calling handler function in {self.service_name}.{handler_func.__name__} ...')
                 try:
-                    params = json.loads(req_payload)['params']
+                    rsp = handler_func(params)
                 except Exception as e:
                     rsp = {
-                        "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
+                        "error": "Error calling receiver function ({}): {}".format(e.__class__.__name__, str(e))
                     }
-                else:
-                    logging.debug(f'calling handler function in {self.service_name}.{handler_func.__name__} ...')
-                    try:
-                        rsp = handler_func(params)
-                    except Exception as e:
-                        rsp = {
-                            "error": "Error calling receiver function ({}): {}".format(e.__class__.__name__, str(e))
-                        }
 
-                MQ.ack_req(self.service_name, handler_func.__name__, req_id)
+            MQ.ack_req(self.service_name, handler_func.__name__, req_id)
 
-                logging.debug(f'sending response from {self.service_name}.{handler_func.__name__} ...')
-                MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
+            logging.debug(f'sending response from {self.service_name}.{handler_func.__name__} ...')
+
+            MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
 
 
 class MessageQueue(object):
