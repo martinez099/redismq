@@ -34,9 +34,11 @@ def send_message(service_name, func_name, params={}, rsp_to=1):
     return json.loads(rsp)
 
 
-class Receivers(object):
+class Consumers(object):
     """
-    Receivers class.
+    Consumers class.
+
+    Helper class to handle multiple consumers.
     """
 
     def __init__(self, service_name, handler_funcs, timeout=1):
@@ -55,7 +57,7 @@ class Receivers(object):
 
     def start(self):
         """
-        Spawn a receiver thread for all handler functions.
+        Spawn a consumer thread for all handler functions.
 
         :return: None
         """
@@ -66,7 +68,7 @@ class Receivers(object):
 
     def wait(self):
         """
-        Wait for all receiver threads to finsih. N.B. This is a blocking operation.
+        Wait for all consumer threads to finsih. N.B. This is a blocking operation.
 
         :return: None
         """
@@ -76,7 +78,7 @@ class Receivers(object):
 
     def stop(self):
         """
-        Stop all receiver threads.
+        Stop all consumer threads.
 
         :return: None
         """
@@ -106,7 +108,7 @@ class Receivers(object):
                     rsp = handler_func(params)
                 except Exception as e:
                     rsp = {
-                        "error": "Error calling receiver function ({}): {}".format(e.__class__.__name__, str(e))
+                        "error": "Error calling handler function ({}): {}".format(e.__class__.__name__, str(e))
                     }
 
             MQ.ack_req(self.service_name, handler_func.__name__, req_id)

@@ -44,11 +44,11 @@ class Channel(object):
         self.pubsub.close()
 
 
-class Sender(Channel):
+class Producer(Channel):
     """
-    Sender Channel class.
+    Producer Channel class.
 
-    An implementation of a communication channel sender for Redis.
+    An implementation of a communication channel producer for Redis.
     """
 
     def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
@@ -57,7 +57,7 @@ class Sender(Channel):
         :param _redis_host: The Redis host.
         :param _redis_port: The Redis port.
         """
-        super(Sender, self).__init__(_name, _redis_host, _redis_port)
+        super(Producer, self).__init__(_name, _redis_host, _redis_port)
 
     def send_req(self, _value, _id=None):
         """
@@ -127,11 +127,11 @@ class Sender(Channel):
         return self.pubsub.unsubscribe(PATTERN.format('responses', self.name))
 
 
-class Receiver(Channel):
+class Consumer(Channel):
     """
-    Receiver Channel class.
+    Consumer Channel class.
 
-    An implementation of a communication channel receiver for Redis.
+    An implementation of a communication channel consumer for Redis.
     """
 
     def __init__(self, _name, _redis_host='localhost', _redis_port=6379):
@@ -140,7 +140,7 @@ class Receiver(Channel):
         :param _redis_host: The Redis host.
         :param _redis_port: The Redis port.
         """
-        super(Receiver, self).__init__(_name, _redis_host, _redis_port)
+        super(Consumer, self).__init__(_name, _redis_host, _redis_port)
 
     def recv_req(self, _to=0):
         """
@@ -177,7 +177,7 @@ class Receiver(Channel):
 
     def send_rsp(self, _id, _value):
         """
-        Send a response back to the receiver.
+        Send a response back to the consumer.
 
         :param _id: The ID of the response, should be the same ID of the request.
         :param _value: The response payload.

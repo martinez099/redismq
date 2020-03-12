@@ -8,7 +8,7 @@ import grpc
 from message_queue_pb2 import SendResponse, ReceiveResponse, GetResponse, AcknowledgeResponse
 from message_queue_pb2_grpc import MessageQueueServicer, add_MessageQueueServicer_to_server
 
-from redismq import Sender, Receiver
+from redismq import Producer, Consumer
 
 
 class MessageQueue(MessageQueueServicer):
@@ -46,7 +46,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The request ID.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Sender)
+        channel = self._get_channel(request.service_name, request.func_name, Producer)
         req_id = channel.send_req(request.payload)
 
         return SendResponse(req_id=req_id)
@@ -59,7 +59,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The response payload.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Sender)
+        channel = self._get_channel(request.service_name, request.func_name, Producer)
         response = channel.recv_rsp(request.req_id, request.timeout)
 
         return ReceiveResponse(payload=response, req_id=request.req_id)
@@ -72,7 +72,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The response payload.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Sender)
+        channel = self._get_channel(request.service_name, request.func_name, Producer)
         response = channel.get_rsp(request.req_id)
 
         return GetResponse(payload=response, req_id=request.req_id)
@@ -85,7 +85,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: Success.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Sender)
+        channel = self._get_channel(request.service_name, request.func_name, Producer)
         success = channel.ack_rsp(request.req_id, request.payload)
 
         return AcknowledgeResponse(success=success)
@@ -98,7 +98,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The payload of the request.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Receiver)
+        channel = self._get_channel(request.service_name, request.func_name, Consumer)
         (req_id, req) = channel.recv_req(request.timeout)
 
         return ReceiveResponse(payload=req, req_id=req_id)
@@ -111,7 +111,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The payload of the request.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Receiver)
+        channel = self._get_channel(request.service_name, request.func_name, Consumer)
         (req_id, req) = channel.get_req()
 
         return GetResponse(payload=req, req_id=req_id)
@@ -124,7 +124,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: Success.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Receiver)
+        channel = self._get_channel(request.service_name, request.func_name, Consumer)
         acknowleged = channel.ack_req(request.req_id)
 
         return AcknowledgeResponse(success=acknowleged)
@@ -137,7 +137,7 @@ class MessageQueue(MessageQueueServicer):
         :param context: The client context.
         :return: The ID of the response.
         """
-        channel = self._get_channel(request.service_name, request.func_name, Receiver)
+        channel = self._get_channel(request.service_name, request.func_name, Consumer)
         sent = channel.send_rsp(request.req_id, request.payload)
 
         return SendResponse(req_id=request.req_id if sent else None)

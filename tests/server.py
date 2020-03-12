@@ -1,15 +1,14 @@
-from redismq import Receiver
+from redismq import Consumer
 
 import json
 
 import gevent
-import redis
 
 from gevent import monkey
 monkey.patch_all()
 
 
-channel = Receiver('channel1')
+channel = Consumer('channel1')
 
 
 def handle_req(_id, _value):

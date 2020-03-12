@@ -1,13 +1,11 @@
-from redismq import Sender
+from redismq import Producer
 
 import json
 import functools
 import time
 
-import redis
 
-
-channel = Sender('channel1')
+channel = Producer('channel1')
 
 
 def handle_rsp(_ctx, _msg):
