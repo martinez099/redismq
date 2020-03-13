@@ -108,7 +108,10 @@ class Consumers(object):
                     rsp = handler_func(params)
                 except Exception as e:
                     rsp = {
-                        "error": "Error calling handler function ({}): {}".format(e.__class__.__name__, str(e))
+                        "error": "Error calling handler function ({}) in {}.{}: {}".format(e.__class__.__name__,
+                                                                                           self.service_name,
+                                                                                           handler_func.__name__,
+                                                                                           str(e))
                     }
 
             MQ.ack_req(self.service_name, handler_func.__name__, req_id)
