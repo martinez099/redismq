@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 import time
 from concurrent import futures
 
@@ -148,8 +149,9 @@ MESSAGE_QUEUE_LISTEN_PORT = os.getenv('MESSAGE_QUEUE_LISTEN_PORT', '50051')
 MESSAGE_QUEUE_MAX_WORKERS = int(os.getenv('MESSAGE_QUEUE_MAX_WORKERS', '10'))
 
 MESSAGE_QUEUE_ADDRESS = '[::]:{}'.format(MESSAGE_QUEUE_LISTEN_PORT)
-MESSAGE_QUEUE_SLEEP_INTERVAL = 60 * 60 * 24
+MESSAGE_QUEUE_SLEEP_INTERVAL = 1
 MESSAGE_QUEUE_GRACE_INTERVAL = 0
+MESSAGE_QUEUE_RUNNING = True
 
 
 def serve():
@@ -166,7 +168,7 @@ def serve():
 
     logging.info('serving ...')
     try:
-        while True:
+        while MESSAGE_QUEUE_RUNNING:
             time.sleep(MESSAGE_QUEUE_SLEEP_INTERVAL)
     except (InterruptedError, KeyboardInterrupt):
         server.stop(MESSAGE_QUEUE_GRACE_INTERVAL)
@@ -174,6 +176,18 @@ def serve():
     logging.info('done.')
 
 
+def stop():
+    """
+    Stop the gRPC server.
+    """
+    global MESSAGE_QUEUE_RUNNING
+    MESSAGE_QUEUE_RUNNING = False
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+
+    signal.signal(signal.SIGINT, lambda n, h: stop())
+    signal.signal(signal.SIGTERM, lambda n, h: stop())
+
     serve()
