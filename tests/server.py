@@ -23,7 +23,7 @@ def handle_req(_id, _value):
     }))
 
     # acknowledge message
-    channel.ack_req(_id)
+    channel.ack_msg(_id)
 
     return True
 
@@ -32,8 +32,8 @@ print('serving ...')
 while True:
 
     # receive the message
-    req_id, req = channel.recv_req()
+    msg_id, msg = channel.recv_msg()
 
     # handle the message
-    if not gevent.spawn(handle_req, req_id, req):
+    if not gevent.spawn(handle_req, msg_id, msg):
         break

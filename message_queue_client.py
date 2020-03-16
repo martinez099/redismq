@@ -12,7 +12,7 @@ from message_queue_pb2_grpc import MessageQueueStub
 
 def send_message(service_name, func_name, params={}, rsp_to=1):
     """
-    Put a message into a message queue.
+    Put a message into a queue.
 
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
@@ -21,15 +21,16 @@ def send_message(service_name, func_name, params={}, rsp_to=1):
     :return: The payload of the response.
     """
     logging.debug(f'sending message to {service_name}.{func_name} ...')
-    req_id = MQ.send_req(service_name, func_name, json.dumps({
+    msg_id = MQ.send_msg(service_name, func_name, json.dumps({
         "params": params
     }))
+
     logging.debug(f'receiving response from {service_name}.{func_name} ...')
-    rsp = MQ.recv_rsp(service_name, func_name, req_id, rsp_to)
+    rsp = MQ.recv_rsp(service_name, func_name, msg_id, rsp_to)
     if not rsp:
         raise TimeoutError('{}.{}'.format(service_name, func_name))
 
-    MQ.ack_rsp(service_name, func_name, req_id, rsp)
+    MQ.ack_rsp(service_name, func_name, msg_id, rsp)
 
     return json.loads(rsp)
 
@@ -90,14 +91,14 @@ class Consumers(object):
 
         while self.running:
 
-            logging.debug(f'receiving request in {self.service_name}.{handler_func.__name__} ...')
+            logging.debug(f'receiving message in {self.service_name}.{handler_func.__name__} ...')
 
-            req_id, req_payload = MQ.recv_req(self.service_name, handler_func.__name__, self.timeout)
-            if not req_payload:
+            msg_id, msg_payload = MQ.recv_msg(self.service_name, handler_func.__name__, self.timeout)
+            if not msg_payload:
                 continue
 
             try:
-                params = json.loads(req_payload)['params']
+                params = json.loads(msg_payload)['params']
             except Exception as e:
                 rsp = {
                     "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
@@ -114,11 +115,11 @@ class Consumers(object):
                                                                                            str(e))
                     }
 
-            MQ.ack_req(self.service_name, handler_func.__name__, req_id)
+            MQ.ack_msg(self.service_name, handler_func.__name__, msg_id)
 
             logging.debug(f'sending response from {self.service_name}.{handler_func.__name__} ...')
 
-            MQ.send_rsp(self.service_name, handler_func.__name__, req_id, json.dumps(rsp))
+            MQ.send_rsp(self.service_name, handler_func.__name__, msg_id, json.dumps(rsp))
 
 
 class MessageQueue(object):
@@ -135,33 +136,33 @@ class MessageQueue(object):
     def __del__(self):
         self.channel.close()
 
-    def send_req(self, service_name, func_name, payload, req_id=None):
+    def send_msg(self, service_name, func_name, payload, msg_id=None):
         """
-        Send a request.
+        Send a message.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param payload: The request payload.
-        :param req_id: The ID of the request, may be None.
-        :return: The ID of the sent request.
+        :param payload: The message payload.
+        :param msg_id: The ID of the message, may be None.
+        :return: The message ID.
         """
-        response = self.stub.send_req(
+        response = self.stub.send_msg(
             SendRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id or str(uuid.uuid4()),
+                msg_id=msg_id or str(uuid.uuid4()),
                 payload=payload,
             ))
 
-        return response.req_id
+        return response.msg_id
 
-    def recv_rsp(self, service_name, func_name, req_id, timeout=0):
+    def recv_rsp(self, service_name, func_name, msg_id, timeout=0):
         """
         Receive a response.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request, may be None.
+        :param msg_id: The message ID, may be None.
         :param timeout: The timeout in seconds.
         :return: The payload of the response.
         """
@@ -169,37 +170,37 @@ class MessageQueue(object):
             ReceiveRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                msg_id=msg_id,
                 timeout=timeout
             ))
 
         return response.payload
 
-    def get_rsp(self, service_name, func_name, req_id):
+    def get_rsp(self, service_name, func_name, msg_id):
         """
         Get a response.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request, may be None.
+        :param msg_id: The message ID, may be None.
         :return: The payload of the response.
         """
         response = self.stub.get_rsp(
             GetRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                msg_id=msg_id,
             ))
 
         return response.payload
 
-    def ack_rsp(self, service_name, func_name, req_id, payload):
+    def ack_rsp(self, service_name, func_name, msg_id, payload):
         """
         Acknowledge a response.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request.
+        :param msg_id: The message ID.
         :param payload: The payload of the response.
         :return: Success.
         """
@@ -207,74 +208,74 @@ class MessageQueue(object):
             AcknowledgeRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                msg_id=msg_id,
                 payload=payload,
             ))
 
         return response.success
 
-    def recv_req(self, service_name, func_name, timeout=0):
+    def recv_msg(self, service_name, func_name, timeout=0):
         """
-        Receive a request.
+        Receive a message.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
         :param timeout: The timeout in seconds.
-        :return: The payload of the request.
+        :return: The message payload.
         """
-        request = self.stub.recv_req(
+        response = self.stub.recv_msg(
             ReceiveRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=None,
+                msg_id=None,
                 timeout=timeout
             ))
 
-        return request.req_id, request.payload
+        return response.msg_id, response.payload
 
-    def get_req(self, service_name, func_name):
+    def get_msg(self, service_name, func_name):
         """
-        Get a request.
+        Get a message.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :return: The payload of the response.
+        :return: The message ID and payload.
         """
-        request = self.stub.get_req(
+        response = self.stub.get_msg(
             GetRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=None,
+                msg_id=None,
             ))
 
-        return request.req_id, request.payload
+        return response.msg_id, response.payload
 
-    def ack_req(self, service_name, func_name, req_id):
+    def ack_msg(self, service_name, func_name, msg_id):
         """
-        Acknowledge a request.
+        Acknowledge a message.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request.
-        :return: The payload of the response.
+        :param msg_id: The message ID.
+        :return: Success.
         """
-        request = self.stub.ack_req(
+        response = self.stub.ack_msg(
             AcknowledgeRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                msg_id=msg_id,
                 payload=None,
             ))
 
-        return request.success
+        return response.success
 
-    def send_rsp(self, service_name, func_name, req_id, payload):
+    def send_rsp(self, service_name, func_name, msg_id, payload):
         """
         Send a response.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
-        :param req_id: The ID of the request.
+        :param msg_id: The message ID.
         :param payload: The payload of the response.
         :return: Success.
         """
@@ -282,11 +283,11 @@ class MessageQueue(object):
             SendRequest(
                 service_name=service_name,
                 func_name=func_name,
-                req_id=req_id,
+                msg_id=msg_id,
                 payload=payload,
             ))
 
-        return response.req_id
+        return response.msg_id
 
 
 MQ = MessageQueue()

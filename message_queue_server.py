@@ -39,18 +39,18 @@ class MessageQueue(MessageQueueServicer):
 
         return channel
 
-    def send_req(self, request, context):
+    def send_msg(self, request, context):
         """
         Send a message.
 
         :param request: The client request.
         :param context: The client context.
-        :return: The request ID.
+        :return: The message ID.
         """
         channel = self._get_channel(request.service_name, request.func_name, Producer)
-        req_id = channel.send_req(request.payload)
+        msg_id = channel.send_msg(request.payload)
 
-        return SendResponse(req_id=req_id)
+        return SendResponse(msg_id=msg_id)
 
     def recv_rsp(self, request, context):
         """
@@ -61,9 +61,9 @@ class MessageQueue(MessageQueueServicer):
         :return: The response payload.
         """
         channel = self._get_channel(request.service_name, request.func_name, Producer)
-        response = channel.recv_rsp(request.req_id, request.timeout)
+        response = channel.recv_rsp(request.msg_id, request.timeout)
 
-        return ReceiveResponse(payload=response, req_id=request.req_id)
+        return ReceiveResponse(payload=response, msg_id=request.msg_id)
 
     def get_rsp(self, request, context):
         """
@@ -74,9 +74,9 @@ class MessageQueue(MessageQueueServicer):
         :return: The response payload.
         """
         channel = self._get_channel(request.service_name, request.func_name, Producer)
-        response = channel.get_rsp(request.req_id)
+        response = channel.get_rsp(request.msg_id)
 
-        return GetResponse(payload=response, req_id=request.req_id)
+        return GetResponse(payload=response, msg_id=request.msg_id)
 
     def ack_rsp(self, request, context):
         """
@@ -87,46 +87,46 @@ class MessageQueue(MessageQueueServicer):
         :return: Success.
         """
         channel = self._get_channel(request.service_name, request.func_name, Producer)
-        success = channel.ack_rsp(request.req_id, request.payload)
+        success = channel.ack_rsp(request.msg_id, request.payload)
 
         return AcknowledgeResponse(success=success)
 
-    def recv_req(self, request, context):
+    def recv_msg(self, request, context):
         """
-        Receive a response.
+        Receive a message.
 
         :param request: The client request.
         :param context: The client context.
-        :return: The payload of the request.
+        :return: The messager payload.
         """
         channel = self._get_channel(request.service_name, request.func_name, Consumer)
-        (req_id, req) = channel.recv_req(request.timeout)
+        (msg_id, msg) = channel.recv_msg(request.timeout)
 
-        return ReceiveResponse(payload=req, req_id=req_id)
+        return ReceiveResponse(payload=msg, msg_id=msg_id)
 
-    def get_req(self, request, context):
+    def get_msg(self, request, context):
         """
-        Get a response.
+        Get a message.
 
         :param request: The client request.
         :param context: The client context.
-        :return: The payload of the request.
+        :return: The message payload.
         """
         channel = self._get_channel(request.service_name, request.func_name, Consumer)
-        (req_id, req) = channel.get_req()
+        (msg_id, msg) = channel.get_msg()
 
-        return GetResponse(payload=req, req_id=req_id)
+        return GetResponse(payload=msg, msg_id=msg_id)
 
-    def ack_req(self, request, context):
+    def ack_msg(self, request, context):
         """
-        Acknowledge a request.
+        Acknowledge a message.
 
         :param request: The client request.
         :param context: The client context.
         :return: Success.
         """
         channel = self._get_channel(request.service_name, request.func_name, Consumer)
-        acknowleged = channel.ack_req(request.req_id)
+        acknowleged = channel.ack_msg(request.msg_id)
 
         return AcknowledgeResponse(success=acknowleged)
 
@@ -139,9 +139,9 @@ class MessageQueue(MessageQueueServicer):
         :return: The ID of the response.
         """
         channel = self._get_channel(request.service_name, request.func_name, Consumer)
-        sent = channel.send_rsp(request.req_id, request.payload)
+        sent = channel.send_rsp(request.msg_id, request.payload)
 
-        return SendResponse(req_id=request.req_id if sent else None)
+        return SendResponse(msg_id=request.msg_id if sent else None)
 
 
 MESSAGE_QUEUE_REDIS_HOST = os.getenv('MESSAGE_QUEUE_REDIS_HOST', 'localhost')

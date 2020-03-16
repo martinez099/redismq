@@ -14,8 +14,8 @@ class MessageQueueStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.send_req = channel.unary_unary(
-        '/messagequeue.MessageQueue/send_req',
+    self.send_msg = channel.unary_unary(
+        '/messagequeue.MessageQueue/send_msg',
         request_serializer=message__queue__pb2.SendRequest.SerializeToString,
         response_deserializer=message__queue__pb2.SendResponse.FromString,
         )
@@ -34,18 +34,18 @@ class MessageQueueStub(object):
         request_serializer=message__queue__pb2.AcknowledgeRequest.SerializeToString,
         response_deserializer=message__queue__pb2.AcknowledgeResponse.FromString,
         )
-    self.recv_req = channel.unary_unary(
-        '/messagequeue.MessageQueue/recv_req',
+    self.recv_msg = channel.unary_unary(
+        '/messagequeue.MessageQueue/recv_msg',
         request_serializer=message__queue__pb2.ReceiveRequest.SerializeToString,
         response_deserializer=message__queue__pb2.ReceiveResponse.FromString,
         )
-    self.get_req = channel.unary_unary(
-        '/messagequeue.MessageQueue/get_req',
+    self.get_msg = channel.unary_unary(
+        '/messagequeue.MessageQueue/get_msg',
         request_serializer=message__queue__pb2.GetRequest.SerializeToString,
         response_deserializer=message__queue__pb2.GetResponse.FromString,
         )
-    self.ack_req = channel.unary_unary(
-        '/messagequeue.MessageQueue/ack_req',
+    self.ack_msg = channel.unary_unary(
+        '/messagequeue.MessageQueue/ack_msg',
         request_serializer=message__queue__pb2.AcknowledgeRequest.SerializeToString,
         response_deserializer=message__queue__pb2.AcknowledgeResponse.FromString,
         )
@@ -60,7 +60,7 @@ class MessageQueueServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
-  def send_req(self, request, context):
+  def send_msg(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -88,21 +88,21 @@ class MessageQueueServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def recv_req(self, request, context):
+  def recv_msg(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def get_req(self, request, context):
+  def get_msg(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def ack_req(self, request, context):
+  def ack_msg(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -119,8 +119,8 @@ class MessageQueueServicer(object):
 
 def add_MessageQueueServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'send_req': grpc.unary_unary_rpc_method_handler(
-          servicer.send_req,
+      'send_msg': grpc.unary_unary_rpc_method_handler(
+          servicer.send_msg,
           request_deserializer=message__queue__pb2.SendRequest.FromString,
           response_serializer=message__queue__pb2.SendResponse.SerializeToString,
       ),
@@ -139,18 +139,18 @@ def add_MessageQueueServicer_to_server(servicer, server):
           request_deserializer=message__queue__pb2.AcknowledgeRequest.FromString,
           response_serializer=message__queue__pb2.AcknowledgeResponse.SerializeToString,
       ),
-      'recv_req': grpc.unary_unary_rpc_method_handler(
-          servicer.recv_req,
+      'recv_msg': grpc.unary_unary_rpc_method_handler(
+          servicer.recv_msg,
           request_deserializer=message__queue__pb2.ReceiveRequest.FromString,
           response_serializer=message__queue__pb2.ReceiveResponse.SerializeToString,
       ),
-      'get_req': grpc.unary_unary_rpc_method_handler(
-          servicer.get_req,
+      'get_msg': grpc.unary_unary_rpc_method_handler(
+          servicer.get_msg,
           request_deserializer=message__queue__pb2.GetRequest.FromString,
           response_serializer=message__queue__pb2.GetResponse.SerializeToString,
       ),
-      'ack_req': grpc.unary_unary_rpc_method_handler(
-          servicer.ack_req,
+      'ack_msg': grpc.unary_unary_rpc_method_handler(
+          servicer.ack_msg,
           request_deserializer=message__queue__pb2.AcknowledgeRequest.FromString,
           response_serializer=message__queue__pb2.AcknowledgeResponse.SerializeToString,
       ),

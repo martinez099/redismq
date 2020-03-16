@@ -3,54 +3,54 @@ syntax = "proto3";
 package messagequeue;
 
 service MessageQueue {
-  rpc send_req (SendRequest) returns (SendResponse) {}
+  rpc send_msg (SendRequest) returns (SendResponse) {}
   rpc recv_rsp (ReceiveRequest) returns (ReceiveResponse) {}
   rpc get_rsp (GetRequest) returns (GetResponse) {}
   rpc ack_rsp (AcknowledgeRequest) returns (AcknowledgeResponse) {}
-  rpc recv_req (ReceiveRequest) returns (ReceiveResponse) {}
-  rpc get_req (GetRequest) returns (GetResponse) {}
-  rpc ack_req (AcknowledgeRequest) returns (AcknowledgeResponse) {}
+  rpc recv_msg (ReceiveRequest) returns (ReceiveResponse) {}
+  rpc get_msg (GetRequest) returns (GetResponse) {}
+  rpc ack_msg (AcknowledgeRequest) returns (AcknowledgeResponse) {}
   rpc send_rsp (SendRequest) returns (SendResponse) {}
 }
 
 message SendRequest {
   string service_name = 1;
   string func_name = 2;
-  string req_id = 3;
+  string msg_id = 3;
   string payload = 4;
 }
 
 message SendResponse {
-  string req_id = 1;
+  string msg_id = 1;
 }
 
 message ReceiveRequest {
   string service_name = 1;
   string func_name = 2;
-  string req_id = 3;
+  string msg_id = 3;
   int32 timeout = 4;
 }
 
 message ReceiveResponse {
   string payload = 1;
-  string req_id = 2;
+  string msg_id = 2;
 }
 
 message GetRequest {
   string service_name = 1;
   string func_name = 2;
-  string req_id = 3;
+  string msg_id = 3;
 }
 
 message GetResponse {
   bool payload = 1;
-  string req_id = 2;
+  string msg_id = 2;
 }
 
 message AcknowledgeRequest {
   string service_name = 1;
   string func_name = 2;
-  string req_id = 3;
+  string msg_id = 3;
   string payload = 4;
 }
 

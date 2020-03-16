@@ -36,11 +36,10 @@ def recv_rsp(_id, _cnt):
 
 start = time.time()
 
-hndl = channel.set_rsp_handler(functools.partial(handle_rsp, {}))
-channel.set_rsp_handler(hndl)
+channel.set_rsp_handler(functools.partial(handle_rsp, {}))
 for i in range(0, 100):
-    req_id = channel.send_req(json.dumps({"cnt": i, "data": 'a_request'}))
-    #recv_rsp(req_id, i)
+    msg_id = channel.send_msg(json.dumps({"cnt": i, "data": 'a_request'}))
+    #recv_rsp(msg_id, i)
 
 end = time.time()
 duration = end - start

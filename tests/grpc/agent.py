@@ -1,7 +1,7 @@
 import signal
 import threading
 
-from message_queue_client import Receivers, send_message
+from message_queue_client import Consumers, send_message
 
 
 def producer(service_name, func_name):
@@ -24,7 +24,7 @@ def test_func(req_params):
 
 threading.Thread(target=producer, args=('test-service', 'test_func')).start()
 
-rs = Receivers('test-service', [test_func]).start()
+rs = Consumers('test-service', [test_func]).start()
 
 
 def signal_handler(signum, sighdl):
