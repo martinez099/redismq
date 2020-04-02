@@ -10,9 +10,9 @@ from message_queue_pb2 import SendRequest, ReceiveRequest, GetRequest, Acknowled
 from message_queue_pb2_grpc import MessageQueueStub
 
 
-def send_message(service_name, func_name, params={}, rsp_to=1):
+def send_message(service_name, func_name, params=None, rsp_to=1):
     """
-    Put a message into a queue.
+    Put a message into a queue and wait for the response.
 
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
@@ -28,11 +28,28 @@ def send_message(service_name, func_name, params={}, rsp_to=1):
     logging.debug(f'receiving response from {service_name}.{func_name} ...')
     rsp = MQ.recv_rsp(service_name, func_name, msg_id, rsp_to)
     if not rsp:
-        raise TimeoutError('{}.{}'.format(service_name, func_name))
+        raise TimeoutError('waiting for response from {}.{}'.format(service_name, func_name))
 
     MQ.ack_rsp(service_name, func_name, msg_id, rsp)
 
     return json.loads(rsp)
+
+
+def send_message_async(service_name, func_name, params=None):
+    """
+    Put a message into a queue and return immediately.
+
+    :param service_name: The name of the service.
+    :param func_name: The name fo the function.
+    :param params: The parameters.
+    :return: The message ID.
+    """
+    logging.debug(f'sending async message to {service_name}.{func_name} ...')
+    msg_id = MQ.send_msg(service_name, func_name, json.dumps({
+        "params": params
+    }))
+
+    return msg_id
 
 
 class Consumers(object):
@@ -108,16 +125,17 @@ class Consumers(object):
                 try:
                     rsp = handler_func(params)
                 except Exception as e:
-                    rsp = {
-                        "error": "Error calling handler function ({}) in {}.{}: {}".format(e.__class__.__name__,
-                                                                                           self.service_name,
-                                                                                           handler_func.__name__,
-                                                                                           str(e))
-                    }
+                    msg = "error calling handler function ({}) in {}.{}: {}".format(e.__class__.__name__,
+                                                                                    self.service_name,
+                                                                                    handler_func.__name__,
+                                                                                    str(e))
+                    raise Exception(msg)
 
             MQ.ack_msg(self.service_name, handler_func.__name__, msg_id)
+            if not rsp:
+                continue
 
-            logging.debug(f'sending response from {self.service_name}.{handler_func.__name__} ...')
+            logging.debug(f'sending response back from {self.service_name}.{handler_func.__name__} ...')
 
             MQ.send_rsp(self.service_name, handler_func.__name__, msg_id, json.dumps(rsp))
 
@@ -156,7 +174,7 @@ class MessageQueue(object):
 
         return response.msg_id
 
-    def recv_rsp(self, service_name, func_name, msg_id, timeout=0):
+    def recv_rsp(self, service_name, func_name, msg_id, timeout):
         """
         Receive a response.
 

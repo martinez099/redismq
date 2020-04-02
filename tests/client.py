@@ -25,7 +25,7 @@ def handle_rsp(_ctx, _msg):
 def recv_rsp(_id, _cnt):
 
     # waiting for response
-    rsp = channel.recv_rsp(_id)
+    rsp = channel.recv_rsp(_id, 1)
 
     # process response
     print(rsp)

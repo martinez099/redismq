@@ -76,12 +76,12 @@ class Producer(Channel):
 
         return msg_id if ok1 and ok2 else None
 
-    def recv_rsp(self, _id, _to=0):
+    def recv_rsp(self, _id, _to):
         """
         Receive a response. N.B: This is a blocking operation.
 
         :param _id: The ID of the resonse, i.e. the ID of the message.
-        :param _to: The blocking timeout in seconds. N.B: defaults to 0, i.e. infinite.
+        :param _to: The blocking timeout in seconds.
         :return: The payload of the response, or None.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
@@ -127,6 +127,7 @@ class Producer(Channel):
 
         :return: Success.
         """
+        self.subscriber.stop()
         self.subscriber = None
 
         return self.pubsub.unsubscribe(PATTERN.format('responses', self.name))
