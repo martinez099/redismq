@@ -35,21 +35,78 @@ def send_message(service_name, func_name, params=None, rsp_to=1):
     return json.loads(rsp)
 
 
-def send_message_async(service_name, func_name, params=None):
+def send_message_async(service_name, func_name, params=None, rsp_handler=None, rsp_timeout=1):
     """
     Put a message into a queue and return immediately.
 
     :param service_name: The name of the service.
     :param func_name: The name fo the function.
-    :param params: The parameters.
+    :param params: Optional parameters.
+    :param rsp_handler: An optional callback handler.
+    :param rsp_timeout: Optional timeout in seconds, defaults to 1.
     :return: The message ID.
     """
     logging.debug(f'sending async message to {service_name}.{func_name} ...')
+
     msg_id = MQ.send_msg(service_name, func_name, json.dumps({
         "params": params
     }))
 
+    if rsp_handler:
+        Waiter(service_name, func_name, msg_id, rsp_handler, rsp_timeout).start()
+
     return msg_id
+
+
+class Waiter(threading.Thread):
+    """
+    Waiter Thread class.
+    """
+
+    def __init__(self, _service_name, _func_name, _msg_id, _handler, _timeout):
+        """
+        :param _service_name:
+        :param _func_name:
+        :param _msg_id:
+        :param _handler:
+        :param _stub:
+        """
+        super(Waiter, self).__init__()
+        self.running = False
+        self.timeout = _timeout
+        self.service_name = _service_name
+        self.func_name = _func_name
+        self.msg_id = _msg_id
+        self.handler = _handler
+
+    def run(self):
+        """
+        Wait for a response to receive, then call handler function with awaited result.
+        """
+        if self.running:
+            return
+
+        self.running = True
+        response = MQ.recv_rsp(
+            ReceiveRequest(
+                service_name=self.service_name,
+                func_name=self.func_name,
+                msg_id=self.msg_id,
+                timeout=self.timeout
+            ))
+
+        if not response:
+            self.running = False
+            return
+
+        try:
+            self.handler(response.payload)
+        except Exception as e:
+            logging.error('error calling handler function ({}) for {}.{}: {}'.format(e.__class__.__name__,
+                                                                                     self.service_name,
+                                                                                     self.func_name,
+                                                                                     str(e)))
+        self.running = False
 
 
 class Consumers(object):
@@ -176,7 +233,7 @@ class MessageQueue(object):
 
     def recv_rsp(self, service_name, func_name, msg_id, timeout):
         """
-        Receive a response.
+        Receive a response. This is a blocking function.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
@@ -196,7 +253,7 @@ class MessageQueue(object):
 
     def get_rsp(self, service_name, func_name, msg_id):
         """
-        Get a response.
+        Get a response. This is a non-blocking function.
 
         :param service_name: The remote service to call.
         :param func_name: The remote function to call.
