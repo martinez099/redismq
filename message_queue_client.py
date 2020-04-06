@@ -15,14 +15,14 @@ def send_message(service_name, func_name, params=None, rsp_to=1):
     Put a message into a queue and wait for the response.
 
     :param service_name: The name of the service.
-    :param func_name: The name fo the function.
+    :param func_name: The name of the function.
     :param params: The parameters.
     :param rsp_to: An optional timeout (in seconds) to wait for the response, defaults to 1.
     :return: The payload of the response.
     """
     logging.debug(f'sending message to {service_name}.{func_name} ...')
     msg_id = MQ.send_msg(service_name, func_name, json.dumps({
-        "params": params
+        "params": params,
     }))
 
     logging.debug(f'receiving response from {service_name}.{func_name} ...')
@@ -40,7 +40,7 @@ def send_message_async(service_name, func_name, params=None, rsp_handler=None, r
     Put a message into a queue and return immediately.
 
     :param service_name: The name of the service.
-    :param func_name: The name fo the function.
+    :param func_name: The name of the function.
     :param params: Optional parameters.
     :param rsp_handler: An optional callback handler.
     :param rsp_timeout: Optional timeout in seconds, defaults to 1.
@@ -49,7 +49,7 @@ def send_message_async(service_name, func_name, params=None, rsp_handler=None, r
     logging.debug(f'sending async message to {service_name}.{func_name} ...')
 
     msg_id = MQ.send_msg(service_name, func_name, json.dumps({
-        "params": params
+        "params": params,
     }))
 
     if rsp_handler:
@@ -69,7 +69,7 @@ class Waiter(threading.Thread):
         :param _func_name:
         :param _msg_id:
         :param _handler:
-        :param _stub:
+        :param _timeout:
         """
         super(Waiter, self).__init__()
         self.running = False
@@ -102,10 +102,11 @@ class Waiter(threading.Thread):
         try:
             self.handler(response.payload)
         except Exception as e:
-            logging.error('error calling handler function ({}) for {}.{}: {}'.format(e.__class__.__name__,
-                                                                                     self.service_name,
-                                                                                     self.func_name,
-                                                                                     str(e)))
+            logging.error(
+                'error calling handler function ({}) for {}.{}: {}'.format(
+                    e.__class__.__name__, self.service_name, self.func_name, str(e)
+                )
+            )
         self.running = False
 
 
@@ -172,7 +173,8 @@ class Consumers(object):
                 continue
 
             try:
-                params = json.loads(msg_payload)['params']
+                payload = json.loads(msg_payload)
+                params = payload['params']
             except Exception as e:
                 rsp = {
                     "error": "Error parsing received payload ({}): {}".format(e.__class__.__name__, str(e))
@@ -182,11 +184,11 @@ class Consumers(object):
                 try:
                     rsp = handler_func(params)
                 except Exception as e:
-                    msg = "error calling handler function ({}) in {}.{}: {}".format(e.__class__.__name__,
-                                                                                    self.service_name,
-                                                                                    handler_func.__name__,
-                                                                                    str(e))
-                    raise Exception(msg)
+                    raise Exception(
+                        "error calling handler function ({}) in {}.{}: {}".format(
+                            e.__class__.__name__, self.service_name, handler_func.__name__, str(e)
+                        )
+                    )
 
             MQ.ack_msg(self.service_name, handler_func.__name__, msg_id)
             if not rsp:
