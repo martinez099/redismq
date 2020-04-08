@@ -121,9 +121,9 @@ class Producer(Channel):
         if not self.subscriber:
             self.subscriber = self.pubsub.run_in_thread(sleep_time=0.001)
 
-    def unset_rsp_handler(self):
+    def unset_rsp_handlers(self):
         """
-        Unset a response handler.
+        Unset all response handlers.
 
         :return: Success.
         """
@@ -181,14 +181,15 @@ class Consumer(Channel):
         if self.messages.ack(_id):
             return self.redis.delete(PATTERN.format('message', _id))
 
-    def send_rsp(self, _id, _value):
+    def send_rsp(self, _id, _value, _ttl=60):
         """
         Send a response back to the producer.
 
         :param _id: The ID of the response, should be the same ID of the message.
         :param _value: The response payload.
+        :param _ttl: Optional TTL in seconds, defaults to 60.
         :return: Success.
         """
-        rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
+        rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis, _ttl)
         if rsps.push(_value):
             return self.redis.publish(PATTERN.format('responses', self.name), _id)
