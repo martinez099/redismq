@@ -55,7 +55,7 @@ def send_message_async(service_name, func_name, params=None, rsp_handler=None, r
     if rsp_handler:
         Waiter(service_name, func_name, msg_id, rsp_handler, rsp_timeout).start()
 
-    return {'msg_id': msg_id}
+    return msg_id
 
 
 class Waiter(threading.Thread):
