@@ -184,7 +184,8 @@ class Consumers(object):
                 try:
                     rsp = handler_func(params)
                 except Exception as e:
-                    raise Exception(
+                    rsp = None
+                    logging.error(
                         "error calling handler function ({}) in {}.{}: {}".format(
                             e.__class__.__name__, self.service_name, handler_func.__name__, str(e)
                         )
