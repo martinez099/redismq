@@ -34,7 +34,7 @@ class MessageQueue(MessageQueueServicer):
         channel = self.channels.get((channel_name, channel_class))
 
         if not channel:
-            channel = channel_class(channel_name, MESSAGE_QUEUE_REDIS_HOST)
+            channel = channel_class(channel_name, MESSAGE_QUEUE_REDIS_HOST, MESSAGE_QUEUE_REDIS_PORT)
             self.channels[(channel_name, channel_class)] = channel
 
         return channel
@@ -145,6 +145,7 @@ class MessageQueue(MessageQueueServicer):
 
 
 MESSAGE_QUEUE_REDIS_HOST = os.getenv('MESSAGE_QUEUE_REDIS_HOST', 'localhost')
+MESSAGE_QUEUE_REDIS_PORT = os.getenv('MESSAGE_QUEUE_REDIS_HOST', 6379)
 MESSAGE_QUEUE_LISTEN_PORT = os.getenv('MESSAGE_QUEUE_LISTEN_PORT', '50051')
 MESSAGE_QUEUE_MAX_WORKERS = int(os.getenv('MESSAGE_QUEUE_MAX_WORKERS', '10'))
 

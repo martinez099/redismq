@@ -65,7 +65,7 @@ class Producer(Channel):
         Send a message.
 
         :param _value: The payload of the message.
-        :param _id: An optional ÍD of the message.
+        :param _id: An optional message ID.
         :return: The ID of the sent message on success, else None.
         """
         msg_id = str(uuid.uuid4()) if not _id else _id
@@ -80,7 +80,7 @@ class Producer(Channel):
         """
         Receive a response. N.B: This is a blocking operation.
 
-        :param _id: The ID of the resonse, i.e. the ID of the message.
+        :param _id: The resonse ID, i.e. the message ID.
         :param _to: The blocking timeout in seconds.
         :return: The payload of the response, or None.
         """
@@ -92,7 +92,7 @@ class Producer(Channel):
         """
         Get a response. N.B: This is a non-blocking operation.
 
-        :param _id: The id of the response, i.e. the ID of the message.
+        :param _id: The response ID, i.e. the message ID.
         :return: The payload of the response.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis)
@@ -103,7 +103,7 @@ class Producer(Channel):
         """
         Acknowledge a response when it's done processing.
 
-        :param _id: The ID of the response.
+        :param _id: The response ID.
         :param _payload: The payload of the response.
         :return: Success.
         """
@@ -118,8 +118,10 @@ class Producer(Channel):
         :param _handler: The handler function.
         """
         self.pubsub.subscribe(**{PATTERN.format('responses', self.name): _handler})
-        if not self.subscriber:
-            self.subscriber = self.pubsub.run_in_thread(sleep_time=0.001)
+        if self.subscriber:
+            return
+
+        self.subscriber = self.pubsub.run_in_thread(sleep_time=0.001)
 
     def unset_rsp_handlers(self):
         """
@@ -153,43 +155,49 @@ class Consumer(Channel):
         Receive a message. N.B: This is a blocking operation.
 
         :param _to: The blocking timeout in seconds. N.B: Defaults to 0, i.e. infinite.
-        :return: A tuple wrapping the id of the message and the message itself, or (None, None)
+        :return: A tuple wrapping the message ID and the message itself, or (None, None)
         """
         msg_id = self.messages.bpop(_to)
-        if msg_id:
-            return msg_id, self.redis.get(PATTERN.format('message', msg_id))
+        if not msg_id:
+            return None, None
 
-        return None, None
+        return msg_id, self.redis.get(PATTERN.format('message', msg_id))
 
     def get_msg(self):
         """
         Get the next message in the queue. N.B: This is a non-blocking operation.
 
-        :return: A tuple wrapping the id of the message and the message payload, or None.
+        :return: A tuple wrapping the message ID and the message payload, or None.
         """
         msg_id = self.messages.pop()
-        if msg_id:
-            return msg_id, self.redis.get(PATTERN.format('message', msg_id))
+        if not msg_id:
+            return
+
+        return msg_id, self.redis.get(PATTERN.format('message', msg_id))
 
     def ack_msg(self, _id):
         """
         Acknowlede a message when it's done processing.
 
-        :param _id: The ID of the message.
+        :param _id: The message ID.
         :return: Success.
         """
-        if self.messages.ack(_id):
-            return self.redis.delete(PATTERN.format('message', _id))
+        if not self.messages.ack(_id):
+            return
+
+        return self.redis.delete(PATTERN.format('message', _id))
 
     def send_rsp(self, _id, _value, _ttl=60):
         """
         Send a response back to the producer.
 
-        :param _id: The ID of the response, should be the same ID of the message.
+        :param _id: The response ID, should be the same as the message ID.
         :param _value: The response payload.
         :param _ttl: Optional TTL in seconds, defaults to 60.
         :return: Success.
         """
         rsps = RQueue(PATTERN.format('response', self.name) + ':' + _id, self.redis, _ttl)
-        if rsps.push(_value):
-            return self.redis.publish(PATTERN.format('responses', self.name), _id)
+        if not rsps.push(_value):
+            return
+
+        return self.redis.publish(PATTERN.format('responses', self.name), _id)
